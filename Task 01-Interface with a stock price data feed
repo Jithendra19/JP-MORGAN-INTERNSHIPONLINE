@@ -1,0 +1,41 @@
+import random
+
+def get_stock_data(stock_name):
+    # Placeholder function for retrieving stock data
+    # Replace this with your actual implementation (e.g., API calls, database queries)
+    bid_price = random.uniform(100, 200)
+    ask_price = random.uniform(bid_price, bid_price + 10)
+    return bid_price, ask_price
+
+def getDataPoint(stock_name):
+    bid_price, ask_price = get_stock_data(stock_name)
+    price = (bid_price + ask_price) / 2
+    return stock_name, bid_price, ask_price, price
+
+def getRatio(stock_name_a, stock_name_b):
+    _, _, _, price_a = getDataPoint(stock_name_a)
+    _, _, _, price_b = getDataPoint(stock_name_b)
+    ratio = price_a / price_b
+    return ratio
+
+def main():
+    stock_name_a = "Stock A"
+    stock_name_b = "Stock B"
+
+    # Get data points for both stocks
+    stock_a_data = getDataPoint(stock_name_a)
+    stock_b_data = getDataPoint(stock_name_b)
+
+    # Display stock information
+    print(f"Stock Information for {stock_name_a}:")
+    print(f"Bid Price: {stock_a_data[1]} | Ask Price: {stock_a_data[2]} | Price: {stock_a_data[3]}")
+
+    print(f"\nStock Information for {stock_name_b}:")
+    print(f"Bid Price: {stock_b_data[1]} | Ask Price: {stock_b_data[2]} | Price: {stock_b_data[3]}")
+
+    # Display ratio of stock prices
+    ratio = getRatio(stock_name_a, stock_name_b)
+    print(f"\nRatio of {stock_name_a} to {stock_name_b} prices: {ratio}")
+
+if __name__ == "__main__":
+    main()
