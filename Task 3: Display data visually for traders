@@ -1,0 +1,67 @@
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
+import plotly.express as px
+import pandas as pd
+
+# Replace these placeholders with your actual data
+# Assuming you have a DataFrame with columns 'timestamp', 'stock1_price', 'stock2_price'
+# Make sure the data is sorted by timestamp
+data = {
+    'timestamp': ['2023-01-01', '2023-01-02', '2023-01-03'],  # Add more timestamps
+    'stock1_price': [100, 105, 98],  # Add actual stock prices
+    'stock2_price': [80, 85, 78],  # Add actual stock prices
+}
+
+df = pd.DataFrame(data)
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+
+# Calculate the ratio between stock1_price and stock2_price
+df['ratio'] = df['stock1_price'] / df['stock2_price']
+
+# Calculate the 12-month historical average ratio
+rolling_avg = df['ratio'].rolling(window=12, min_periods=1).mean()
+
+# Define upper and lower bounds
+upper_bound = 1.1 * rolling_avg
+lower_bound = 0.9 * rolling_avg
+
+# Create Dash app
+app = dash.Dash(__name__)
+
+# Define layout
+app.layout = html.Div([
+    dcc.Graph(id='live-graph'),
+])
+
+# Define callback for live updating graph
+@app.callback(
+    Output('live-graph', 'figure'),
+    [Input('live-graph', 'relayoutData')]
+)
+def update_graph(relayoutData):
+    # Check if the bounds are crossed
+    if df.iloc[-1]['ratio'] > upper_bound.iloc[-1] or df.iloc[-1]['ratio'] < lower_bound.iloc[-1]:
+        alert_message = f'Alert: Ratio crossed bounds at {df.iloc[-1]["timestamp"]}'
+    else:
+        alert_message = ''
+
+    # Create the live updating graph
+    fig = px.line(df, x='timestamp', y='ratio', title='Stock Ratio Monitoring')
+    fig.add_trace(px.line(x=df['timestamp'], y=upper_bound, line_dash='dash', name='Upper Bound').data[0])
+    fig.add_trace(px.line(x=df['timestamp'], y=lower_bound, line_dash='dash', name='Lower Bound').data[0])
+    
+    # Add alert message to the graph
+    fig.add_annotation(
+        text=alert_message,
+        x=df.iloc[-1]['timestamp'],
+        y=df.iloc[-1]['ratio'],
+        showarrow=True,
+        arrowhead=1,
+    )
+
+    return fig
+
+# Run the app
+if __name__ == '__main__':
+    app.run_server(debug=True)
